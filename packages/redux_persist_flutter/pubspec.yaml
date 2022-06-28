@@ -12,4 +12,7 @@ dependencies:
   path_provider: ^2.0.1
   shared_preferences: ^2.0.4
   redux_persist:
-   path: ../redux_persist
+    git:
+      url: https://github.com/happy-co/redux_persist_flutter.git
+      ref: persist_off_main_thread
+      path: packages/redux_persist
