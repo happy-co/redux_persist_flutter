@@ -104,7 +104,7 @@ class Persistor<T> {
 
       T? state;
       try {
-        state = serializer.decode(data);
+        state = await serializer.decode(data);
       } catch (error) {
         throw SerializationException('On load: ${error.toString()}');
       }
@@ -151,7 +151,7 @@ class Persistor<T> {
 
       _printDebug('Serializing');
 
-      var data = serializer.encode(state);
+      var data = await serializer.encode(state);
 
       _printDebug('Running save raw transformations');
 
@@ -171,7 +171,7 @@ class Persistor<T> {
       try {
         // Use lock to prevent writing twice at the same time
         await _saveLock.synchronized(() async => await storage.save(data));
-      } catch (error) {
+      } catch (error, stacktrace) {
         throw StorageException('On save: ${error.toString()}');
       }
 

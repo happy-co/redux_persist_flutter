@@ -14,6 +14,6 @@ dependencies:
   redux_persist: ^0.9.0
 
 # Used for development
-#dependency_overrides:
-#  redux_persist:
-#    path: ../redux_persist
+dependency_overrides:
+ redux_persist:
+   path: ../redux_persist

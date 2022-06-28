@@ -5,7 +5,7 @@ void main() {
   test("loads", () async {
     final serializer = StringSerializer();
     final initialState = "hello";
-    final storage = MemoryStorage(serializer.encode(initialState));
+    final storage = MemoryStorage(await serializer.encode(initialState));
 
     final persistor = Persistor<String?>(
       storage: storage,

@@ -1,9 +1,11 @@
 library redux_persist_flutter;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:redux_persist/redux_persist.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,21 +56,12 @@ class DocumentFileEngine implements StorageEngine {
 
   @override
   Future<Uint8List?> load() async {
-    final file = await _getFile();
-
-    if (await file.exists()) {
-      // Read to json
-      return Uint8List.fromList(await file.readAsBytes());
-    }
-
-    return null;
+    return compute(_readFile, await _getFile());
   }
 
   @override
   Future<void> save(Uint8List? data) async {
-    final file = await _getFile();
-    // Write as json
-    await file.writeAsBytes(data!);
+    await compute(_saveFile, SaveFileParams(await _getFile(), data));
   }
 
   Future<File> _getFile() async {
@@ -76,6 +69,30 @@ class DocumentFileEngine implements StorageEngine {
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/persist_$key.json');
   }
+}
+
+/// _readFile is intended to be called via a compute method to take off the main
+/// thread
+Future<Uint8List?> _readFile(File file) async {
+  return await file.readAsBytes();
+}
+
+/// SaveFileParams convenience class to allow using compute
+class SaveFileParams {
+  final File file;
+  final Uint8List? data;
+
+  SaveFileParams(this.file, this.data);
+}
+
+/// _saveFile is intended to be called via a compute method to take off the main
+/// thread
+Future<void> _saveFile(SaveFileParams params) async {
+  final data = params.data;
+  if (data == null) {
+    return;
+  }
+  await params.file.writeAsBytes(data);
 }
 
 /// Storage engine to save to NSUserDefaults/SharedPreferences.
@@ -95,9 +112,62 @@ class SharedPreferencesEngine implements StorageEngine {
   @override
   Future<void> save(Uint8List? data) async {
     final sharedPreferences = await _getSharedPreferences();
-    sharedPreferences.setString(key, uint8ListToString(data)!);
+    sharedPreferences.setString(key, await uint8ListToString(data) ?? '');
   }
 
   Future<SharedPreferences> _getSharedPreferences() async =>
       await SharedPreferences.getInstance();
+}
+
+class FlutterJsonSerializer<T> implements StateSerializer<T> {
+  /// Turns the dynamic [json] (can be null) to [T]
+  final T? Function(dynamic? json) decoder;
+
+  FlutterJsonSerializer(this.decoder);
+
+  @override
+  Future<T?> decode(Uint8List? data) async {
+    return decoder(
+        data != null ? json.decode(await uint8ListToString(data) ?? '') : null);
+  }
+
+  @override
+  Future<Uint8List?> encode(T state) async {
+    if (state == null) {
+      return null;
+    }
+
+    return stringToUint8List(await compute(jsonEncode, state));
+  }
+}
+
+// String helpers
+
+Future<Uint8List?> stringToUint8List(String? data) async {
+  if (data == null) {
+    return null;
+  }
+
+  return Uint8List.fromList(await compute(_utf8Encode, data));
+}
+
+Future<String?> uint8ListToString(Uint8List? data) async {
+  if (data == null) {
+    return null;
+  }
+
+  return await compute(_utf8Decode, data);
+}
+
+/// _utf8Decode is intended to be called by a compute.
+String _utf8Decode(List<int> codeUnits) {
+  // Switch between const objects to avoid allocation.
+  Utf8Decoder decoder = const Utf8Decoder(allowMalformed: false);
+  return decoder.convert(codeUnits);
+}
+
+/// _utf8Encode is intended to be called by a compute.
+Uint8List _utf8Encode(String data) {
+  Utf8Encoder utf8encoder = const Utf8Encoder();
+  return utf8encoder.convert(data);
 }

@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 /// Serializer interface for turning state ([T]) into [Uint8List], and back
 abstract class StateSerializer<T> {
-  Uint8List? encode(T state);
+  Future<Uint8List?> encode(T state);
 
-  T? decode(Uint8List? data);
+  Future<T?> decode(Uint8List? data);
 }
 
 class JsonSerializer<T> implements StateSerializer<T> {
@@ -15,12 +15,12 @@ class JsonSerializer<T> implements StateSerializer<T> {
   JsonSerializer(this.decoder);
 
   @override
-  T? decode(Uint8List? data) {
+  Future<T?> decode(Uint8List? data) async {
     return decoder(data != null ? json.decode(uint8ListToString(data)!) : null);
   }
 
   @override
-  Uint8List? encode(T state) {
+  Future<Uint8List?> encode(T state) async {
     if (state == null) {
       return null;
     }
@@ -32,12 +32,12 @@ class JsonSerializer<T> implements StateSerializer<T> {
 /// Serializer for a [String] state
 class StringSerializer implements StateSerializer<String?> {
   @override
-  String? decode(Uint8List? data) {
+  Future<String?> decode(Uint8List? data) async {
     return uint8ListToString(data);
   }
 
   @override
-  Uint8List? encode(String? state) {
+  Future<Uint8List?> encode(String? state) async {
     return stringToUint8List(state);
   }
 }
@@ -45,10 +45,10 @@ class StringSerializer implements StateSerializer<String?> {
 /// Serializer for a [Uint8List] state, basically pass-through
 class RawSerializer implements StateSerializer<Uint8List?> {
   @override
-  Uint8List? decode(Uint8List? data) => data;
+  Future<Uint8List?> decode(Uint8List? data) => Future.value(data);
 
   @override
-  Uint8List? encode(Uint8List? state) => state;
+  Future<Uint8List?> encode(Uint8List? state) => Future.value(state);
 }
 
 // String helpers
