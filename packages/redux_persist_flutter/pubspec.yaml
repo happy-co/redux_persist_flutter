@@ -11,9 +11,5 @@ dependencies:
     sdk: "flutter"
   path_provider: ^2.0.1
   shared_preferences: ^2.0.4
-  #redux_persist: ^0.9.0
-
-# Used for development
-dependency_overrides:
- redux_persist:
+  redux_persist:
    path: ../redux_persist
