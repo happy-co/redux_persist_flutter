@@ -148,7 +148,7 @@ Future<Uint8List?> stringToUint8List(String? data) async {
     return null;
   }
 
-  return Uint8List.fromList(await compute(_utf8Encode, data));
+  return await compute(_utf8Encode, data);
 }
 
 Future<String?> uint8ListToString(Uint8List? data) async {
