@@ -171,7 +171,7 @@ class Persistor<T> {
       try {
         // Use lock to prevent writing twice at the same time
         await _saveLock.synchronized(() async => await storage.save(data));
-      } catch (error, stacktrace) {
+      } catch (error) {
         throw StorageException('On save: ${error.toString()}');
       }
 
