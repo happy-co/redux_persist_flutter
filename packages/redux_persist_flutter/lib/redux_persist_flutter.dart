@@ -112,7 +112,7 @@ class SharedPreferencesEngine implements StorageEngine {
   @override
   Future<void> save(Uint8List? data) async {
     final sharedPreferences = await _getSharedPreferences();
-    sharedPreferences.setString(key, await uint8ListToString(data) ?? '');
+    sharedPreferences.setString(key, (await uint8ListToString(data))!);
   }
 
   Future<SharedPreferences> _getSharedPreferences() async =>
@@ -128,7 +128,7 @@ class FlutterJsonSerializer<T> implements StateSerializer<T> {
   @override
   Future<T?> decode(Uint8List? data) async {
     return decoder(
-        data != null ? json.decode(await uint8ListToString(data) ?? '') : null);
+        data != null ? json.decode((await uint8ListToString(data))!);
   }
 
   @override
