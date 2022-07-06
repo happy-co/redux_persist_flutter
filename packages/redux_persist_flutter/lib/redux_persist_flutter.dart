@@ -128,7 +128,7 @@ class FlutterJsonSerializer<T> implements StateSerializer<T> {
   @override
   Future<T?> decode(Uint8List? data) async {
     return decoder(
-        data != null ? json.decode((await uint8ListToString(data))!);
+        data != null ? json.decode((await uint8ListToString(data))!) : null);
   }
 
   @override
