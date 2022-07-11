@@ -104,7 +104,7 @@ class Persistor<T> {
 
       T? state;
       try {
-        state = serializer.decode(data);
+        state = await serializer.decode(data);
       } catch (error) {
         throw SerializationException('On load: ${error.toString()}');
       }
@@ -151,7 +151,7 @@ class Persistor<T> {
 
       _printDebug('Serializing');
 
-      var data = serializer.encode(state);
+      var data = await serializer.encode(state);
 
       _printDebug('Running save raw transformations');
 
